@@ -40,3 +40,5 @@ nuget.exe
 /paket-files
 /.paket/paket.exe
 /.paket/Paket.Restore.targets
+/nuget.config
+/src/CRMTester

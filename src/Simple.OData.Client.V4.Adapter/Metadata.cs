@@ -112,12 +112,22 @@ public class Metadata : MetadataBase
 			return singleton.Name;
 		}
 
-		if (TryGetEntityType(instanceTypeName, out var entityType))
+		if (TryGetEntityType(instanceTypeName, out var entityType) && TryGetEntitySetByType(entityType.FullTypeName(), out entitySet))
+		{
+			return entitySet.Name;
+		}
+
+		if (TryGetEntityType(instanceTypeName, out entityType))
 		{
 			return entityType.Name;
 		}
 
 		if (TryGetEntitySet(typeName, out entitySet))
+		{
+			return entitySet.Name;
+		}
+
+		if (TryGetEntityType(typeName, out entityType) && TryGetEntitySetByType(entityType.FullTypeName(), out entitySet))
 		{
 			return entitySet.Name;
 		}
@@ -333,6 +343,19 @@ public class Metadata : MetadataBase
 			.Where(x => x.SchemaElementKind == EdmSchemaElementKind.EntityContainer)
 			.SelectMany(x => (x as IEdmEntityContainer).EntitySets())
 			.BestMatch(x => x.Name, entitySetName, NameMatchResolver);
+
+		return entitySet != null;
+	}
+
+	private bool TryGetEntitySetByType(string entityType, out IEdmEntitySet entitySet)
+	{
+		if (entityType.Contains("/"))
+			entityType = entityType.Split('/').First();
+
+		entitySet = _model.SchemaElements
+			.Where(x => x.SchemaElementKind == EdmSchemaElementKind.EntityContainer)
+			.SelectMany(x => (x as IEdmEntityContainer).EntitySets())
+			.BestMatch(x => x.Type.AsElementType().FullTypeName(), entityType, NameMatchResolver);
 
 		return entitySet != null;
 	}
